@@ -1,34 +1,43 @@
-FROM python:3.9
+FROM ubuntu:22.04
 
 ENV INDICO_VIRTUALENV="/opt/indico/.venv" INDICO_CONFIG="/opt/indico/etc/indico.conf"
 
 ARG KRB_CACHE_DIR='/var/run/keytab'
 ARG pip="${INDICO_VIRTUALENV}/bin/pip"
-ARG tag="latest"
+ARG tag="v3.2"
 
 ENV KRB_CACHE_DIR ${KRB_CACHE_DIR}
+ENV DEBIAN_FRONTEND noninteractive
 
 USER root
 
 RUN set -ex && \
     apt-get update && \
     apt-get -y install texlive-xetex libpq-dev postgresql-client vim less python3-virtualenv gcc gettext && \
+    apt-get -y install -y libjpeg-turbo8-dev zlib1g-dev git npm && \
     apt-get clean
 
-RUN ["/bin/bash", "-c", "mkdir -p --mode=775 /opt/indico/{etc,tmp,log,cache,archive}"]
+RUN ["/bin/bash", "-c", "mkdir -p --mode=775 /opt/indico/{etc,tmp,log,cache,archive,src}"]
+
+RUN  if [ "$tag" = "latest" ]; \
+     then git clone --branch "v3.2" https://github.com/indico/indico.git /opt/indico/src ;\
+     else \
+     git clone --branch "$tag" https://github.com/indico/indico.git /opt/indico/src ;\
+     fi
 
 RUN virtualenv ${INDICO_VIRTUALENV}
 
 RUN ${pip} install --upgrade pip setuptools && \
-    ${pip} install uwsgi raven
+    ${pip} install uwsgi raven flask_url_map_serializer
 
 RUN apt-get install -y libldap2-dev
 
-RUN if [ "$tag" = "latest" ]; then \
-    ${pip} install indico; \
-else \
-    ${pip} install indico==${tag}; \
-fi;
+RUN ${pip} install -e /opt/indico/src
+WORKDIR /opt/indico/src
+
+RUN npm ci
+
+RUN . ${INDICO_VIRTUALENV}/bin/activate && exec python3 /opt/indico/src/bin/maintenance/build-assets.py indico
 
 RUN ${INDICO_VIRTUALENV}/bin/indico setup create-symlinks /opt/indico
 RUN ${INDICO_VIRTUALENV}/bin/indico setup create-logging-config /opt/indico/etc
