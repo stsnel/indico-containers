@@ -4,7 +4,7 @@ ENV INDICO_VIRTUALENV="/opt/indico/.venv" INDICO_CONFIG="/opt/indico/etc/indico.
 
 ARG KRB_CACHE_DIR='/var/run/keytab'
 ARG pip="${INDICO_VIRTUALENV}/bin/pip"
-ARG tag="v3.2"
+ARG tag="v3.2-testar-plain"
 
 ENV KRB_CACHE_DIR ${KRB_CACHE_DIR}
 ENV DEBIAN_FRONTEND noninteractive
@@ -19,11 +19,7 @@ RUN set -ex && \
 
 RUN ["/bin/bash", "-c", "mkdir -p --mode=775 /opt/indico/{etc,tmp,log,cache,archive,src}"]
 
-RUN  if [ "$tag" = "latest" ]; \
-     then git clone --branch "v3.2" https://github.com/indico/indico.git /opt/indico/src ;\
-     else \
-     git clone --branch "$tag" https://github.com/indico/indico.git /opt/indico/src ;\
-     fi
+RUN  git clone --branch "$tag" https://github.com/stsnel/indico.git /opt/indico/src
 
 RUN virtualenv ${INDICO_VIRTUALENV}
 
