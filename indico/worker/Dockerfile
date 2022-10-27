@@ -15,7 +15,7 @@ USER root
 RUN set -ex && \
     apt-get update && \
     apt-get -y install texlive-xetex libpq-dev postgresql-client vim less python3-virtualenv gcc gettext && \
-    apt-get -y install -y libjpeg-turbo8-dev zlib1g-dev git npm && \
+    apt-get -y install -y libjpeg-turbo8-dev zlib1g-dev git npm sqlite3 && \
     apt-get clean
 
 RUN ["/bin/bash", "-c", "mkdir -p --mode=775 /opt/indico/{etc,tmp,log,cache,archive,src} $COVERAGE_DIR"]
