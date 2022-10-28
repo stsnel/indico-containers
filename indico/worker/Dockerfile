@@ -13,15 +13,21 @@ USER root
 
 RUN set -ex && \
     apt-get update && \
-    apt-get -y install texlive-xetex libpq-dev postgresql-client vim less python3-virtualenv gcc gettext && \
-    apt-get -y install -y libjpeg-turbo8-dev zlib1g-dev git npm && \
+    apt-get -y install software-properties-common
+
+RUN add-apt-repository ppa:deadsnakes/ppa
+
+RUN set -ex && \
+    apt-get update && \
+    apt-get -y install python3.9 texlive-xetex libpq-dev postgresql-client vim less python3-virtualenv gcc gettext && \
+    apt-get -y install -y libjpeg-turbo8-dev zlib1g-dev git npm sqlite3 python3.9 python3.9-dev python3.9-distutils && \
     apt-get clean
 
 RUN ["/bin/bash", "-c", "mkdir -p --mode=775 /opt/indico/{etc,tmp,log,cache,archive,src}"]
 
 RUN  git clone --branch "$tag" https://github.com/stsnel/indico.git /opt/indico/src
 
-RUN virtualenv ${INDICO_VIRTUALENV}
+RUN virtualenv --python /usr/bin/python3.9 ${INDICO_VIRTUALENV}
 
 RUN ${pip} install --upgrade pip setuptools && \
     ${pip} install uwsgi raven flask_url_map_serializer
