@@ -32,6 +32,8 @@ RUN  if [ "$tag" = "latest" ]; \
      git clone --branch "$tag" https://github.com/stsnel/indico.git /opt/indico/src ;\
      fi
 
+RUN rm /opt/indico/src/.coveragerc
+
 RUN virtualenv --python /usr/bin/python3.9 ${INDICO_VIRTUALENV}
 
 RUN ${pip} install --upgrade pip setuptools && \
